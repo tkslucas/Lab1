@@ -177,7 +177,9 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+  int l = x | y;
+  int r = x & y;
+  return l & !r;
 }
 /* 
  * bitMatch - Create mask indicating which bits in x match those in y
