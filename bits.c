@@ -177,9 +177,12 @@ NOTES:
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  int l = x | y;
-  int r = x & y;
-  return l & !r;
+  int l = ~x & y;
+  int r = x & ~y;
+  // Subsitution form of OR
+  int l_inv = ~l;
+  int r_inv = ~r;
+  return ~(l_inv & r_inv);
 }
 /* 
  * bitMatch - Create mask indicating which bits in x match those in y
@@ -205,7 +208,16 @@ int bitMatch(int x, int y) {
  *   Rating: 2
  */
 int allOddBits(int x) {
-  return 2;
+  int mask = 0xAA; // constant 0b0000... ....10101010
+  // extending the mask to be 32 bits
+  // utilizing the fact that mask has 24 zero's after the rightmost 1
+  // therefore, the OR operation can extend the mask
+  mask |= (mask << 8); // The mask is now 16 bits of non-trivial data
+  mask |= (mask << 16); // The mask is now 32 bits, with a 1 at each odd bit
+  
+  int oddBits = x & mask;
+  int result = oddBits ^ mask; // If any odd bits are zero, then this number is not equal to zero
+  return !result; // If the number is zero, then return true, otherwise, return false
 }
 /* 
  * byteSwap - swaps the nth byte and the mth byte
