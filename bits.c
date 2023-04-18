@@ -217,7 +217,18 @@ int allOddBits(int x) {
  *  Rating: 2
  */
 int byteSwap(int x, int n, int m) {
-    return 2;
+  int nShift = n << 3;
+  int mShift = m << 3;
+  int xn = x >> nShift;
+  int xm = x >> mShift;
+  int ones = 0xFF;
+  int xored = xn ^ xm;
+  int swapped = ones & xored;
+  int nSwapShifted = swapped << nShift;
+  int mSwapShifted = swapped << mShift;
+  int result = x ^ nSwapShifted;
+  result = result ^ mSwapShifted;
+  return result;
 }
 /* 
  * isGreater - if x > y  then return 1, else return 0 
