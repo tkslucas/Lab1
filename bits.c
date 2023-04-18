@@ -190,7 +190,11 @@ int bitXor(int x, int y) {
  *   Rating: 1
  */
 int bitMatch(int x, int y) {
-  return 2;
+  int l = x & y;
+  int x_inv = ~x;
+  int y_inv = ~y;
+  int r = x_inv & y_inv;
+  return l | r;
 }
 /* 
  * allOddBits - return 1 if all odd-numbered bits in word set to 1
