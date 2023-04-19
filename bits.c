@@ -387,15 +387,17 @@ int floatIsEqual(unsigned uf, unsigned ug) {
   unsigned gFraction = ug & fractionMask;
 
   // Check if either input is NaN.
-  if ((fExponent == exponentMask && fFraction != 0) || (gExponent == exponentMask && gFraction != 0)) {
+  if ((fExponent == exponentMask && fFraction != 0)) {
     return 0;
   }
 
-  // +- 0
-  if (fSign != gSign && fExponent != 0 && gExponent != 0 && gFraction != 0 && fFraction != 0) {
+  // Is it zero?
+  if ((fExponent == 0 && gExponent == 0) && (fFraction == 0 && gFraction == 0))
+  {
     return 1;
   }
-  return fExponent == gExponent && fFraction == gFraction;
+
+  return fExponent == gExponent && fFraction == gFraction && fSign == gSign;
 }
 /* 
  * floatNegate - Return bit-level equivalent of expression -f for
