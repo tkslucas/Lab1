@@ -297,12 +297,22 @@ int isAsciiDigit(int x) {
  *   Rating: 4
  */
 int bitParity(int x) {
-  int y = x ^ (x >> 1);
-  y = y ^ (y >> 2);
-  y = y ^ (y >> 4);
+  // Takes advantage that the addition and odds and evens follow the same pattern as an XOR gate
+  // even + even = even
+  // even + odd = odd
+  // odd + even = odd
+  // odd + odd = even
+
+  // Collapse the "evenness" or "oddness" of neighboring bits onto one bit
+  int y = x ^ (x >> 1); // Condensing neighbor from right
+  y = y ^ (y >> 2); // Condensing neighbor two to the right
+  y = y ^ (y >> 4); // etc...
   y = y ^ (y >> 8);
   y = y ^ (y >> 16);
-
+  // Only have to do this in this specified pattern as each "compression" divides the amount of bits that have an accurate sum by 2
+  // Log_2 of 32 is 5 steps...
+  // After 5 steps, the "evenness" can be found on the least significant bit
+  // & 1 to cut all but the lsb off
   return y & 1;
 }
 /*
@@ -329,7 +339,13 @@ int isTmin(int x) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
-  return 2;
+  int negative = x >> 31;
+  int sign = negative << 31;
+  int l = x ^ negative;
+  int r = negative & 1;
+  int magnitude = l + r;
+  int result = sign | magnitude;
+  return result;
 }
 /* 
  * twosComp2SignMag - Convert from two's complement to sign-magnitude 
@@ -341,13 +357,7 @@ int fitsBits(int x, int n) {
  *   Rating: 4
  */
 int twosComp2SignMag(int x) {
-  int negative = x >> 31;
-  int sign = negative << 31;
-  int l = x ^ negative;
-  int r = negative & 1;
-  int magnitude = l + r;
-  int result = sign | magnitude;
-  return result;
+  return 2;
 }
 /* 
  * floatIsEqual - Compute f == g for floating point arguments f and g.
@@ -361,7 +371,14 @@ int twosComp2SignMag(int x) {
  *   Rating: 2
  */
 int floatIsEqual(unsigned uf, unsigned ug) {
-    return 2;
+  unsigned exponentShift = uf >> 23;
+  unsigned exponentPart = exponentShift & 0xFF;
+  unsigned fractionPart = uf << 9;
+  if (exponentPart == 0xFF && fractionPart != 0x00)
+  {
+    return uf;
+  }
+  return uf ^ (1 << 31);
 }
 /* 
  * floatNegate - Return bit-level equivalent of expression -f for
@@ -375,14 +392,7 @@ int floatIsEqual(unsigned uf, unsigned ug) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
-  unsigned exponentShift = uf >> 23;
-  unsigned exponentPart = exponentShift & 0xFF;
-  unsigned fractionPart = uf << 9;
-  if (exponentPart == 0xFF && fractionPart != 0x00)
-  {
-    return uf;
-  }
-  return uf ^ (1 << 31);
+ return 2;
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
