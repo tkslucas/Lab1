@@ -318,7 +318,13 @@ int fitsBits(int x, int n) {
  *   Rating: 4
  */
 int twosComp2SignMag(int x) {
-  return 2;
+  int negative = x >> 31;
+  int sign = negative << 31;
+  int l = x ^ negative;
+  int r = negative & 1;
+  int magnitude = l + r;
+  int result = sign | magnitude;
+  return result;
 }
 /* 
  * floatIsEqual - Compute f == g for floating point arguments f and g.
