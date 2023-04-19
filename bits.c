@@ -379,8 +379,10 @@ int floatIsEqual(unsigned uf, unsigned ug) {
   unsigned fractionMask = (1 << 23) - 1;  // 23 bits for fraction
 
   // Extract the exponent and fraction parts of the inputs.
+  unsigned fSign = uf >> 31;
   unsigned fExponent = uf & exponentMask;
   unsigned gExponent = ug & exponentMask;
+  unsigned gSign = ug >> 31;
   unsigned fFraction = uf & fractionMask;
   unsigned gFraction = ug & fractionMask;
 
@@ -389,6 +391,10 @@ int floatIsEqual(unsigned uf, unsigned ug) {
     return 0;
   }
 
+  // +- 0
+  if (fSign != gSign && fExponent != 0 && gExponent != 0 && gFraction != 0 && fFraction != 0) {
+    return 1;
+  }
   return fExponent == gExponent && fFraction == gFraction;
 }
 /* 
