@@ -352,7 +352,14 @@ int floatIsEqual(unsigned uf, unsigned ug) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
- return 2;
+  unsigned exponentShift = uf >> 23;
+  unsigned exponentPart = exponentShift & 0xFF;
+  unsigned fractionPart = uf << 9;
+  if (exponentPart == 0xFF && fractionPart != 0x00)
+  {
+    return uf;
+  }
+  return uf ^ (1 << 31);
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
