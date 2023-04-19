@@ -262,7 +262,15 @@ int isGreater(int x, int y) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int shifted4 = x >> 4;
+  int shifted3 = x >> 3;
+  int shifted1 = x >> 1;
+  int l = shifted4 ^ 0x3;
+  int r1 = shifted3 & 1;
+  int r2 = !(shifted1 & 0x3);
+  int r = r1 & !r2;
+  int result = !l & !r;
+  return result;
 }
 /*
  * bitParity - returns 1 if x contains an odd number of 0's
@@ -282,7 +290,11 @@ int bitParity(int x) {
  *   Rating: 1
  */
 int isTmin(int x) {
-  return 2;
+  int zero = !x;
+  int r = ~x + 1;
+  int l = x^r;
+  int result = !(l + zero);
+  return result;
 }
 /* 
  * fitsBits - return 1 if x can be represented as an 
