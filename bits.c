@@ -209,14 +209,16 @@ int bitMatch(int x, int y) {
  */
 int allOddBits(int x) {
   int mask = 0xAA; // constant 0b0000... ....10101010
+  int oddBits;
+  int result;
   // extending the mask to be 32 bits
   // utilizing the fact that mask has 24 zero's after the rightmost 1
   // therefore, the OR operation can extend the mask
   mask |= (mask << 8); // The mask is now 16 bits of non-trivial data
   mask |= (mask << 16); // The mask is now 32 bits, with a 1 at each odd bit
   
-  int oddBits = x & mask;
-  int result = oddBits ^ mask; // If any odd bits are zero, then this number is not equal to zero
+  oddBits = x & mask;
+  result = oddBits ^ mask; // If any odd bits are zero, then this number is not equal to zero
   return !result; // If the number is zero, then return true, otherwise, return false
 }
 /* 
@@ -251,6 +253,10 @@ int byteSwap(int x, int n, int m) {
  */
 int isGreater(int x, int y) {
   int differenceMask = x ^ y;
+  // Set the signbit of the mask to one, but leave the rest unchanged
+  // differenceMask |= (1 << 31);
+  int signMask = (1 << 31);
+  int signMaskInv = ~signMask;
   
   // Propogate the mask to give a new mask of values that we need to check
   differenceMask |= differenceMask >> 1;
@@ -258,11 +264,6 @@ int isGreater(int x, int y) {
   differenceMask |= differenceMask >> 4;
   differenceMask |= differenceMask >> 8;
   differenceMask |= differenceMask >> 16;
-
-  // Set the signbit of the mask to one, but leave the rest unchanged
-  // differenceMask |= (1 << 31);
-  int signMask = (1 << 31);
-  int signMaskInv = ~signMask;
 
   differenceMask &= ~(differenceMask >> 1) | signMask;
   differenceMask &= (x ^ signMask) & (y ^ signMaskInv);
@@ -339,13 +340,10 @@ int isTmin(int x) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
-  int negative = x >> 31;
-  int sign = negative << 31;
-  int l = x ^ negative;
-  int r = negative & 1;
-  int magnitude = l + r;
-  int result = sign | magnitude;
-  return result;
+    int bitsLeft = 32 + (~n + 1);
+    int extendedX = (x << bitsLeft) >> bitsLeft; // Extend whatever the bit is at n to the left of the integer
+
+    return !(extendedX ^ x);
 }
 /* 
  * twosComp2SignMag - Convert from two's complement to sign-magnitude 
@@ -357,7 +355,13 @@ int fitsBits(int x, int n) {
  *   Rating: 4
  */
 int twosComp2SignMag(int x) {
-  return 2;
+  int negative = x >> 31;
+  int sign = negative << 31;
+  int l = x ^ negative;
+  int r = negative & 1;
+  int magnitude = l + r;
+  int result = sign | magnitude;
+  return result;
 }
 /* 
  * floatIsEqual - Compute f == g for floating point arguments f and g.
@@ -371,14 +375,21 @@ int twosComp2SignMag(int x) {
  *   Rating: 2
  */
 int floatIsEqual(unsigned uf, unsigned ug) {
-  unsigned exponentShift = uf >> 23;
-  unsigned exponentPart = exponentShift & 0xFF;
-  unsigned fractionPart = uf << 9;
-  if (exponentPart == 0xFF && fractionPart != 0x00)
-  {
-    return uf;
+  unsigned exponentMask = 0xFF << 23;  // 8 bits for exponent
+  unsigned fractionMask = (1 << 23) - 1;  // 23 bits for fraction
+
+  // Extract the exponent and fraction parts of the inputs.
+  unsigned fExponent = uf & exponentMask;
+  unsigned gExponent = ug & exponentMask;
+  unsigned fFraction = uf & fractionMask;
+  unsigned gFraction = ug & fractionMask;
+
+  // Check if either input is NaN.
+  if ((fExponent == exponentMask && fFraction != 0) || (gExponent == exponentMask && gFraction != 0)) {
+    return 0;
   }
-  return uf ^ (1 << 31);
+
+  return fExponent == gExponent && fFraction == gFraction;
 }
 /* 
  * floatNegate - Return bit-level equivalent of expression -f for
@@ -392,7 +403,14 @@ int floatIsEqual(unsigned uf, unsigned ug) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
- return 2;
+  unsigned exponentShift = uf >> 23;
+  unsigned exponentPart = exponentShift & 0xFF;
+  unsigned fractionPart = uf << 9;
+  if (exponentPart == 0xFF && fractionPart != 0x00)
+  {
+    return uf;
+  }
+  return uf ^ (1 << 31);
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
@@ -407,5 +425,25 @@ unsigned floatNegate(unsigned uf) {
  *   Rating: 4
  */
 int floatFloat2Int(unsigned uf) {
-  return 2;
+  unsigned sign = uf >> 31;
+  unsigned exp = (uf >> 23) & 0xFF;
+  unsigned frac = uf & ((1 << 23) - 1);
+  int E = exp - 127;
+  int M = frac | (1 << 23);
+  int result;
+
+  if (exp == 0xFF || E >= 31) {
+    // NaN or overflow
+    result = 1 << 31;
+  } else if (E < 0) {
+    // less than 1
+    result = 0;
+  } else if (E >= 23) {
+    // more than 2^23
+    result = M << (E - 23);
+  } else {
+    result = M >> (23 - E);
+  }
+
+  return sign ? -result : result;
 }
