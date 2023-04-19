@@ -250,7 +250,24 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3
  */
 int isGreater(int x, int y) {
-  return 2;
+  int differenceMask = x ^ y;
+  
+  // Propogate the mask to give a new mask of values that we need to check
+  differenceMask |= differenceMask >> 1;
+  differenceMask |= differenceMask >> 2;
+  differenceMask |= differenceMask >> 4;
+  differenceMask |= differenceMask >> 8;
+  differenceMask |= differenceMask >> 16;
+
+  // Set the signbit of the mask to one, but leave the rest unchanged
+  // differenceMask |= (1 << 31);
+  int signMask = (1 << 31);
+  int signMaskInv = ~signMask;
+
+  differenceMask &= ~(differenceMask >> 1) | signMask;
+  differenceMask &= (x ^ signMask) & (y ^ signMaskInv);
+
+  return !!differenceMask;
 }
 /* 
  * isAsciiDigit - return 1 if 0x30 <= x <= 0x39 (ASCII codes for characters '0' to '9')
@@ -272,7 +289,13 @@ int isAsciiDigit(int x) {
  *   Rating: 4
  */
 int bitParity(int x) {
-  return 2;
+  int y = x ^ (x >> 1);
+  y = y ^ (y >> 2);
+  y = y ^ (y >> 4);
+  y = y ^ (y >> 8);
+  y = y ^ (y >> 16);
+
+  return y & 1;
 }
 /*
  * isTmin - returns 1 if x is the minimum, two's complement number,
