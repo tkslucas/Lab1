@@ -279,7 +279,15 @@ int isGreater(int x, int y) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int shifted4 = x >> 4;
+  int shifted3 = x >> 3;
+  int shifted1 = x >> 1;
+  int l = shifted4 ^ 0x3;
+  int r1 = shifted3 & 1;
+  int r2 = !(shifted1 & 0x3);
+  int r = r1 & !r2;
+  int result = !l & !r;
+  return result;
 }
 /*
  * bitParity - returns 1 if x contains an odd number of 0's
@@ -305,7 +313,11 @@ int bitParity(int x) {
  *   Rating: 1
  */
 int isTmin(int x) {
-  return 2;
+  int zero = !x;
+  int r = ~x + 1;
+  int l = x^r;
+  int result = !(l + zero);
+  return result;
 }
 /* 
  * fitsBits - return 1 if x can be represented as an 
@@ -329,7 +341,13 @@ int fitsBits(int x, int n) {
  *   Rating: 4
  */
 int twosComp2SignMag(int x) {
-  return 2;
+  int negative = x >> 31;
+  int sign = negative << 31;
+  int l = x ^ negative;
+  int r = negative & 1;
+  int magnitude = l + r;
+  int result = sign | magnitude;
+  return result;
 }
 /* 
  * floatIsEqual - Compute f == g for floating point arguments f and g.
@@ -357,7 +375,14 @@ int floatIsEqual(unsigned uf, unsigned ug) {
  *   Rating: 2
  */
 unsigned floatNegate(unsigned uf) {
- return 2;
+  unsigned exponentShift = uf >> 23;
+  unsigned exponentPart = exponentShift & 0xFF;
+  unsigned fractionPart = uf << 9;
+  if (exponentPart == 0xFF && fractionPart != 0x00)
+  {
+    return uf;
+  }
+  return uf ^ (1 << 31);
 }
 /* 
  * floatFloat2Int - Return bit-level equivalent of expression (int) f
